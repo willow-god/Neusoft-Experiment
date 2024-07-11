@@ -1,0 +1,20 @@
+.VideoBodyUp-stream {
+    width: 100%;
+    display: flex; 
+    justify-content: space-between;
+}
+
+.UploadVideo {
+    display: flex;
+    justify-content: space-between;
+    width: 500px;
+    margin-right: 10px;
+    height: 60px;
+    
+}
+
+.UploadVideo > * {
+    margin-right: 10px;
+}
+
+

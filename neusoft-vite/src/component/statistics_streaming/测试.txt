@@ -1,0 +1,121 @@
+import React, { useState } from 'react';
+import { UploadOutlined } from '@ant-design/icons';
+import { Button, Upload, message, Input } from 'antd';
+import Echart_Line from './Echart_Line';
+import Echart_Column from './Echart_Column';
+import '/src/css/statistic.css';
+
+const App = () => {
+    const [videoURL, setVideoURL] = useState(null);
+    const [currentFrame, setCurrentFrame] = useState(null); // 当前帧图像数据
+    const [pedestrianCount, setPedestrianCount] = useState([]);
+    const [vehicleCount, setVehicleCount] = useState([]);
+    const [pedestriansPerInterval, setPedestriansPerInterval] = useState([]);  // 每个处理间隙中通过的行人数
+    const [vehiclesPerInterval, setVehiclesPerInterval] = useState([]);  // 每个处理间隙中通过的车辆数
+    const [interval, setInterval] = useState(250);
+    let globalVariable = 0;
+
+    const uploadProps = {
+        customRequest: ({ file, onSuccess, onError }) => {
+            const formData = new FormData();
+            formData.append('video', file);
+
+            fetch('http://localhost:5000/video-streaming', {
+                method: 'POST',
+                body: formData,
+            })
+                .then((response) => {
+                    if (response.ok) {
+                        message.success('Upload successful');
+                        const reader = response.body.getReader();
+
+                        function read() {
+                            reader.read().then(({ done, value }) => {
+                                if (done) {
+                                    console.log('Stream complete');
+                                    return;
+                                }
+
+                                const text = new TextDecoder("utf-8").decode(value);
+                                const data = JSON.parse(text);
+                                console.log('Pedestrian Count:', data.pedestrian_count);
+                                console.log('Vehicle Count:', data.vehicle_count);
+
+                                // Update state with new values
+                                setPedestrianCount(prevData => [
+                                    ...prevData,
+                                    { time: globalVariable, count: data.pedestrian_count },
+                                ]);
+                                setVehicleCount(prevData => [
+                                    ...prevData,
+                                    { time: globalVariable, count: data.vehicle_count },
+                                ]);
+                                globalVariable += 1;
+
+                                // Read the next chunk of data
+                                read();
+                            }).catch((error) => {
+                                console.error('Error while reading stream:', error);
+                            });
+                        }
+
+                        read();
+                        setVideoURL(URL.createObjectURL(file));
+                        onSuccess(null, file);
+                    } else {
+                        message.error('Upload failed');
+                        onError(new Error('Upload failed'));
+                    }
+                })
+                .catch((error) => {
+                    console.error('Error:', error);
+                    message.error('Upload failed');
+                    onError(error);
+                });
+        },
+        showUploadList: false,
+    };
+
+    return (
+        <div>
+            <div className='UploadVideo'>
+                <Upload {...uploadProps}>
+                    <Button icon={<UploadOutlined />}>上传视频</Button>
+                </Upload>
+                <Input 
+                    addonBefore="处理间隔" 
+                    addonAfter="毫秒(ms)" 
+                    value={interval} 
+                    onChange={(e) => setInterval(Number(e.target.value))} 
+                />
+                <Button type="primary">开始处理</Button>
+            </div>
+            <div className='personUp'>
+                <div style={{ width: '500px', height: '325px', border: '1px solid #d9d9d9', marginTop: '16px' }}>
+                    {videoURL ? (
+                        <video width="100%" controls autoPlay>
+                            <source src={videoURL} type="video/mp4" />
+                            Your browser does not support the video tag.
+                        </video>
+                    ) : (
+                        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%', color: '#aaa' }}>
+                            视频展示区域，请先上传视频
+                        </div>
+                    )}
+                </div>
+                {/* 显示处理后的帧图像 */}
+                <div style={{ width: '500px', height: '325px', border: '1px solid #d9d9d9', marginTop: '16px' }}>
+                    {currentFrame && <img src={currentFrame} style={{ width: '100%', height: '100%', objectFit: 'contain' }} alt="Processed Frame" />}
+                </div>
+                <div style={{ width: '780px', height: '325px', border: '1px solid #d9d9d9', marginTop: '16px' }}>
+                    <Echart_Column pedestrianData={pedestrianCount} vehicleData={vehicleCount} />
+                </div>
+            </div>
+            <div style={{ width: '1300px', height: '300px', border: '1px solid #d9d9d9', marginTop: '16px' }}>
+                <Echart_Line pedestrianData={pedestrianCount} vehicleData={vehicleCount} />
+            </div>
+        </div>
+    );
+};
+
+export default App;

@@ -1,0 +1,8 @@
+# 忽略所有.zip文件
+*.zip
+
+# 忽略所有目录下的node_modules文件夹
+**/node_modules/
+
+# 忽略视频文件
+*.mp4

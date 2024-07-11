@@ -1,0 +1,12 @@
+.container-upload {
+    display: flex;
+    flex-direction: column; /* Stack elements vertically */
+    padding: 15px;
+    justify-content: center;
+    align-items: center;
+    height: auto; /* Set the desired height */
+    width: 100%; /* Set the desired width */
+    border: 2px solid #ccc;
+    border-radius: 12px;
+}
+
