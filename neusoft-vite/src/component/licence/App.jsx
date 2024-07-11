@@ -5,11 +5,16 @@ import '/src/css/licence.css';
 
 const App = () => {
     const [pictures, setPictures] = useState([]);
+    const [loadings, setLoadings] = useState(false);
+
     const searchProcess = (value) => {
         if (value === '') {
             message.error('请输入车牌号');
             return;
         }
+
+        setLoadings(true);
+
         console.log("搜索内容：", value);
         setPictures([]);
 
@@ -64,6 +69,8 @@ const App = () => {
             }).catch(error => {
                 console.error('请求出错:', error);
                 message.error('处理失败');
+            }).finally(() => {
+                setLoadings(false);
             });
     }
 
@@ -82,6 +89,7 @@ const App = () => {
                     enterButton="嗖嗖嗖搜索"
                     size="large"
                     onSearch={searchProcess}
+                    loading={loadings}
                 />
             </div>
             <div className='pictures'>

@@ -15,6 +15,7 @@ const App = () => {
     const [pedestriansPerInterval, setPedestriansPerInterval] = useState([]);
     const [vehiclesPerInterval, setVehiclesPerInterval] = useState([]);
     const [interval, setInterval] = useState(250);
+    const [loadings, setLoadings] = useState(false);
     let globalVariable = 0;
 
     const uploadProps = {
@@ -33,6 +34,8 @@ const App = () => {
             message.error('请先上传视频');
             return;
         }
+
+        setLoadings(true);
 
         const formData = new FormData();
         formData.append('video', videoFile);
@@ -92,6 +95,8 @@ const App = () => {
             .catch(error => {
                 console.error('请求出错:', error);
                 message.error('处理失败');
+            }).finally(() => {
+                setLoadings(false);
             });
     };
 
@@ -107,7 +112,7 @@ const App = () => {
                     value={interval}
                     onChange={(e) => setInterval(Number(e.target.value))}
                 />
-                <Button type="primary" onClick={handleProcess}>开始处理</Button>
+                <Button type="primary" onClick={handleProcess} loading={loadings}>开始处理</Button>
             </div>
             <div className='VideoBodyUp-stream'>
                 <div className='radiusBox' style={{ width: '350px', height: '200px', border: '1px solid #d9d9d9', marginTop: '16px' }}>

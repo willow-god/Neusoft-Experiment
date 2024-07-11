@@ -6,6 +6,7 @@ import Statistics_Streaming_App from './component/statistics_streaming/App.jsx'
 import Licence_App from './component/licence/App.jsx'
 import Face_App from './component/face/App.jsx'
 import Statistic_App from './component/statistics/App.jsx'
+import Team_App from './component/team/App.jsx'
 import Menu from './component/menu.jsx'
 import './css/upload.css'
 import { Space } from 'antd'
@@ -138,6 +139,18 @@ const Router = createBrowserRouter([
           <h2>🤩🤩🤩流式检测</h2>
           <h3>上传一个视频，在处理过程中将逐步呈现数据！</h3>
           <Statistics_Streaming_App />
+        </div>
+      </div>,
+  },
+  {
+    path: "/team",
+    element:
+      <div className="container">
+        <div className="container-menu">
+          <Menu />
+        </div>
+        <div className='content'>
+          <Team_App />
         </div>
       </div>,
   },

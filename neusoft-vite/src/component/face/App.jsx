@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
-import { Input, message, Card, Upload, Image } from 'antd';
-import { PlusOutlined } from '@ant-design/icons';
-const { Search } = Input;
-import '/src/css/licence.css';
+import { message, Card, Upload, Image, Button } from 'antd';
+import { PlusOutlined, UploadOutlined } from '@ant-design/icons';
+import '/src/css/face.css';
 
 const getBase64 = (file) =>
     new Promise((resolve, reject) => {
@@ -17,6 +16,8 @@ const App = () => {
     const [previewImage, setPreviewImage] = useState(''); // 预览图片的 URL
     const [previewOpen, setPreviewOpen] = useState(false); // 是否打开预览图片
     const [fileList, setFileList] = useState([]); // 上传的文件列表
+    const [uploadFile, setUploadFile] = useState(null); // 保存上传的图像文件
+    const [loadings, setLoadings] = useState(false);
 
     const handlePreview = async (file) => {
         if (!file.url && !file.preview) {
@@ -26,7 +27,32 @@ const App = () => {
         setPreviewOpen(true);
     };
 
-    const handleChange = ({ fileList: newFileList }) => setFileList(newFileList);
+    const handleChange = ({ fileList: newFileList }) => {
+        setFileList(newFileList);
+        if (newFileList.length > 0) {
+            setUploadFile(newFileList[0].originFileObj);
+        } else {
+            setUploadFile(null);
+        }
+    };
+
+    const beforeUpload = (file) => {
+        const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png';
+        if (!isJpgOrPng) {
+            message.error('您只能上传 JPG/PNG 文件!');
+        }
+        const isLt2M = file.size / 1024 / 1024 < 2;
+        if (!isLt2M) {
+            message.error('图片大小必须小于 2MB!');
+        }
+        setFileList([file]);
+        return isJpgOrPng && isLt2M;
+    };
+
+    const customRequest = ({ file, onSuccess }) => {
+        // 阻止默认上传行为
+        onSuccess("ok");
+    };
 
     const uploadButton = (
         <button
@@ -47,20 +73,21 @@ const App = () => {
         </button>
     );
 
-    const searchProcess = (value) => {
-        if (value === '') {
-            message.error('请输入车牌号');
+    const searchProcess = () => {
+        if (!uploadFile) {
+            message.error('请上传图片');
             return;
         }
-        console.log("搜索内容：", value);
+
+        setLoadings(true);
+
+        const formData = new FormData();
+        formData.append('image', uploadFile);
         setPictures([]);
 
-        fetch('http://localhost:5000/licence-plate', {
+        fetch('http://192.168.69.169:5000/face-detect', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ licence_plate: value }),
+            body: formData,
         })
             .then(response => {
                 if (response.ok) {
@@ -106,6 +133,8 @@ const App = () => {
             }).catch(error => {
                 console.error('请求出错:', error);
                 message.error('处理失败');
+            }).finally(() => {
+                setLoadings(false);
             });
     };
 
@@ -118,15 +147,28 @@ const App = () => {
 
     return (
         <div>
-            <div className='search' style={{ width: 800, margin: 10 }}>
-                <Upload
-                    listType="picture-card"
-                    fileList={fileList}
-                    onPreview={handlePreview}
-                    onChange={handleChange}
-                >
-                    {fileList.length >= 1 ? null : uploadButton}
-                </Upload>
+            <div className='search'>
+                <div className='face_button'>
+                    <Upload
+                        listType="picture"
+                        fileList={fileList}
+                        onPreview={handlePreview}
+                        onChange={handleChange}
+                        beforeUpload={beforeUpload}
+                        customRequest={customRequest}
+                    >
+                        <Button icon={<UploadOutlined />}>上传人脸</Button>
+                    </Upload>
+                    <Button
+                    className='face_button_search'
+                        type="primary"
+                        onClick={searchProcess}
+                        loading={loadings}
+                        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                    >
+                        点击查询
+                    </Button>
+                </div>
                 {previewImage && (
                     <Image
                         wrapperStyle={{
@@ -143,11 +185,14 @@ const App = () => {
             </div>
             <div className='pictures'>
                 {pictures.map((item, index) => (
-                    <Card key={index} style={{ width: 302, height: 320, margin: 10 }}>
-                        <div style={{ height: 220, borderBottom: "2px solid #ccc", paddingBottom: 20, alignItems: 'center', justifyContent: 'center' }}>
-                            <img src={item.car_image} alt="车辆图片" style={{ maxWidth: '100%', maxHeight: '100%' }} />
+                    <Card className='face_card' key={index} >
+                        <div className='face_pic' >
+                            <Image
+                                src={item.similar_face}
+                                alt='similar_face'
+                            />
                         </div>
-                        <p>时间：{formatTime(item.time)}</p>
+                        <p>时间：{item.time}</p>
                     </Card>
                 ))}
             </div>

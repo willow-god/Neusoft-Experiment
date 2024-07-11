@@ -4,7 +4,6 @@ import { Button, Upload, message, Input } from 'antd';
 import Echart_Line from './Echart_Line';
 import Echart_Column from './Echart_Column';
 import '/src/css/statistic.css';
-import { set } from '@ant-design/plots/es/core/utils';
 
 const App = () => {
     const [videoFile, setVideoFile] = useState(null);
@@ -14,6 +13,7 @@ const App = () => {
     const [pedestriansPerInterval, setPedestriansPerInterval] = useState([]);
     const [vehiclesPerInterval, setVehiclesPerInterval] = useState([]);
     const [interval, setInterval] = useState(250);
+    const [loadings, setLoadings] = useState(false);
 
     const uploadProps = {
         fileList: videoFile ? [videoFile] : [],
@@ -31,6 +31,8 @@ const App = () => {
             message.error('请先上传视频！');
             return;
         }
+
+        setLoadings(true);
 
         const formData = new FormData();
         formData.append('video', videoFile);
@@ -54,6 +56,8 @@ const App = () => {
             .catch((error) => {
                 console.error('错误:', error);
                 message.error('处理失败！');
+            }).finally(() => {
+                setLoadings(false);
             });
     };
 
@@ -69,7 +73,7 @@ const App = () => {
                     value={interval} 
                     onChange={(e) => setInterval(Number(e.target.value))} 
                 />
-                <Button type="primary" onClick={handleProcess}>开始处理</Button>
+                <Button type="primary" onClick={handleProcess} loading={loadings}>开始处理</Button>
             </div>
             
             <div className='VideoBodyUp'>

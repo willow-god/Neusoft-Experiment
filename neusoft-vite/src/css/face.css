@@ -5,8 +5,21 @@
     justify-content: flex-start;
 }
 
+.face_button {
+    align-items: flex-start; /* 垂直方向对齐到顶部 */
+    gap: 10px; /* 添加按钮之间的间隙 */
+    height: 100px;
+    position: relative; 
+    max-width: 400px;
+}
 
-.licence_card {
+.face_button_search {
+    position: absolute;
+    top: 0;
+    left: 120px;
+}
+
+.face_card {
     width: calc(25% - 20px); /* 默认四个卡片一行，减去margin */
     height: 360px;
     margin: 10px;
@@ -15,27 +28,28 @@
 
 /* 屏幕宽度小于1300px时，三个卡片一行 */
 @media (max-width: 1300px) {
-    .licence_card {
+    .face_card {
         width: calc(33.33% - 20px); /* 三个卡片一行，减去margin */
     }
 }
 
 /* 屏幕宽度小于1000px时，两个卡片一行 */
 @media (max-width: 1000px) {
-    .licence_card {
+    .face_card {
         width: calc(50% - 20px); /* 两个卡片一行，减去margin */
     }
 }
 
 /* 屏幕宽度小于800px时，一个卡片一行 */
 @media (max-width: 800px) {
-    .licence_card {
+    .face_card {
         width: calc(100% - 20px); /* 一个卡片一行，减去margin */
     }
 }
 
 
-.licence_pic {
+.face_pic {
+    border-radius: 12px;
     height: 220px;
     border-bottom: 2px solid #ccc;
     padding-bottom: 20px;
@@ -45,8 +59,15 @@
     overflow: hidden;
 }
 
-.licence_pic img {
+.face_pic img {
+    border-radius: 12px;
     max-width: 100%;
     max-height: 100%;
     object-fit: cover;
+}
+
+.face_button { 
+    display: 'flex';
+    justify-content: center;
+    flex-wrap: wrap;
 }

@@ -128,8 +128,8 @@ const items = [
         type: 'group',
         children: [
             {
-                key: 'wm1',
-                label: '团队',
+                key: '/team',
+                label: '团队分工',
             },
             {
                 key: 'wm2',
