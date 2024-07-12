@@ -10,7 +10,7 @@ CORS(app)
 UPLOAD_FOLDER = 'uploads/video'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-@app.route('/video', methods=['POST'])
+@app.route('/video-m3u8', methods=['POST'])
 def process_video():
     # 获取视频文件和处理间隙
     video = request.files['video']

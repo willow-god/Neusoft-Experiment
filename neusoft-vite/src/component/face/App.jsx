@@ -85,7 +85,7 @@ const App = () => {
         formData.append('image', uploadFile);
         setPictures([]);
 
-        fetch('http://192.168.69.176:5000/face-detect', {
+        fetch('http://localhost:5000/face-detect', {
             method: 'POST',
             body: formData,
         })

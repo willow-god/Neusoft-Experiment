@@ -1,352 +1,248 @@
-## 前端-后端交互
+# 接口文档
 
-### 1. /video  POST
+本部分代码为测试接口代码，仅用于调试使用，数据为随机生成，不用于正式环境，并且本人不对其中任何直链做可连性保证，请自行替换，望周知！
 
-**描述**: 上传视频流数据和处理间隙（毫秒），后端处理后返回处理好的视频链接和统计数据。
+## 文件结构
 
-**请求格式**:
-- 请求方法: POST
-- 请求头: Content-Type: multipart/form-data
-- 请求体:
-  - video: 视频文件 (文件类型)
-  - interval: 处理间隙 (整数，单位: 毫秒)
-
-**响应格式**:
-- 响应头: Content-Type: application/json
-- 响应体:
-  ```json
-  {
-    "processed_video_url": "http://example.com/processed_video.mp4",
-    "pedestrian_counts": [10, 20, 15],  // 每隔对应处理间隙抽帧，每个帧上人数数组
-    "vehicle_counts": [5, 10, 7],  // 每隔对应处理间隙抽帧，每个帧上车数数组
-    "pedestrians_per_interval": [3, 6, 5],  // 每个时间段内进行人通过量统计，并形成数组
-    "vehicles_per_interval": [1, 4, 2]  // 每个时间段内进行车通过量统计，形成数组
-  }
-  ```
-
-### 2. /video-streaming  POST
-
-**描述**: 上传视频流数据和处理间隙（毫秒），后端按照时间间隙抽帧处理后逐帧发送数据。
-
-**请求格式**:
-- 请求方法: POST
-- 请求头: Content-Type: multipart/form-data
-- 请求体:
-  - video: 视频文件 (文件类型)
-  - interval: 处理间隙 (整数，单位: 毫秒)
-
-**响应格式**:
-- 响应头: Content-Type: application/json
-- 响应体: (每一帧处理完后返回)
-  ```json
-  {
-    "frame_base64": "data:image/jpeg;base64,...",  //当前帧处理后带锚点框的数据
-    "people_count": 5,  // 当前帧的人数
-    "vehicle_count": 3,  // 当前帧的车数
-    "pedestrians_per_interval": 2,  // 当前处理间隙中通过人数
-    "vehicles_per_interval": 1  // 当前处理间隙通过的车数
-  }
-  ```
-
-### 3. /face-detect  POST
-
-**描述**: 上传图片，后端对比后逐个返回包含图片直链的数组和时间戳。
-
-**请求格式**:
-- 请求方法: POST
-- 请求头: Content-Type: multipart/form-data
-- 请求体:
-  - image: 图片文件 (文件类型)
-
-**响应格式**:
-- 响应头: Content-Type: application/json
-- 响应体: (每找到一个结果后返回)
-  ```json
-  {
-    "time": 12345, // 表示返回的图像在视频中对应的毫秒数
-    "similar_face": "http://example.com/face1.jpg" // 永久链接
-  }
-  ```
-
-### 4. /licence-plate  POST
-
-**描述**: 上传车牌号，后端通过车牌号检索包含对应车牌的图像，并逐个返回包含图片直链和时间戳。
-
-**请求格式**:
-- 请求方法: POST
-- 请求头: Content-Type: application/json
-- 请求体:
-  ```json
-  {
-    "licence_plate": "ABC123"
-  }
-  ```
-
-**响应格式**:
-- 响应头: Content-Type: application/json
-- 响应体: (每找到一个结果后返回)
-  ```json
-  {
-    "time": 12345,  // 表示返回的图像在视频中对应的毫秒数
-    "car_image": "http://example.com/car1.jpg"  // 永久链接
-  }
-  ```
-
-### 接口实现
-
-以下是修改后的 Flask 代码示例：
-
-```python
-from flask import Flask, request, jsonify
-from werkzeug.utils import secure_filename
-import base64
-import os
-
-app = Flask(__name__)
-
-@app.route('/video', methods=['POST'])
-def process_video():
-    video = request.files['video']
-    interval = int(request.form['interval'])
-    
-    # 处理视频逻辑
-    processed_video_url = "http://example.com/processed_video.mp4"
-    pedestrian_counts = [10, 20, 15]
-    vehicle_counts = [5, 10, 7]
-    pedestrians_per_interval = [3, 6, 5]
-    vehicles_per_interval = [1, 4, 2]
-    
-    return jsonify({
-        "processed_video_url": processed_video_url,
-        "pedestrian_counts": pedestrian_counts,
-        "vehicle_counts": vehicle_counts,
-        "pedestrians_per_interval": pedestrians_per_interval,
-        "vehicles_per_interval": vehicles_per_interval
-    })
-
-@app.route('/video-streaming', methods=['POST'])
-def process_video_streaming():
-    video = request.files['video']
-    interval = int(request.form['interval'])
-    
-    # 处理视频流逻辑，逐帧发送数据
-    def generate():
-        timestamp = 0
-        while True:
-            # 假设这里处理了一帧数据
-            frame_base64 = base64.b64encode(b"dummy_frame_data").decode('utf-8')
-            people_count = 5
-            vehicle_count = 3
-            pedestrians_per_interval = 2
-            vehicles_per_interval = 1
-            
-            yield jsonify({
-                "timestamp": timestamp,
-                "frame_base64": "data:image/jpeg;base64," + frame_base64,
-                "people_count": people_count,
-                "vehicle_count": vehicle_count,
-                "pedestrians_per_interval": pedestrians_per_interval,
-                "vehicles_per_interval": vehicles_per_interval
-            })
-            timestamp += interval
-    
-    return app.response_class(generate(), mimetype='application/json')
-
-@app.route('/face-detect', methods=['POST'])
-def face_detect():
-    image = request.files['image']
-    filename = secure_filename(image.filename)
-    image_path = os.path.join('/path/to/upload', filename)
-    image.save(image_path)
-    
-    # 人脸检测逻辑
-    def generate():
-        timestamp = 0
-        similar_faces = [
-            "http://example.com/face1.jpg",
-            "http://example.com/face2.jpg",
-            "http://example.com/face3.jpg"
-        ]
-        for face in similar_faces:
-            yield jsonify({"timestamp": timestamp, "similar_face": face})
-            timestamp += 1000  # 假设每个结果间隔1秒
-    
-    return app.response_class(generate(), mimetype='application/json')
-
-@app.route('/licence-plate', methods=['POST'])
-def licence_plate():
-    data = request.get_json()
-    licence_plate = data['licence_plate']
-    
-    # 车牌号检索逻辑
-    def generate():
-        timestamp = 0
-        car_images = [
-            "http://example.com/car1.jpg",
-            "http://example.com/car2.jpg",
-            "http://example.com/car3.jpg"
-        ]
-        for image in car_images:
-            yield jsonify({"timestamp": timestamp, "car_image": image})
-            timestamp += 1000  # 假设每个结果间隔1秒
-    
-    return app.response_class(generate(), mimetype='application/json')
-
-if __name__ == '__main__':
-    app.run(debug=True)
+```
+project/
+│
+├── main.py                        # 所有接口的入口文件，集中处理请求和路由
+│
+├── video.py                       # 视频处理相关接口，包含视频分析和统计功能
+│
+├── video-m3u8.py                 # M3U8 视频处理接口，处理视频并返回 M3U8 链接
+│
+├── uploads/                       # 上传文件存储目录
+│   ├── video                      # 存放上传的视频文件
+│   ├── image                      # 存放上传的图像文件
+│   └── video-streaming            # 存放视频流处理的中间文件
+│
+└── etc/                           # 其他辅助文件或无效文件的存放目录
+    └── invalid_files              # 存放无效文件的目录
 ```
 
+## 结构说明
 
-## 后端-数据端交互
+### `main.py`
+- **描述**: 该文件是应用的入口，集中定义所有接口的路由和请求处理逻辑。
 
-### 1. 查询人脸接口 (/search-face)
+### `video.py`
+- **描述**: 包含与视频处理相关的接口，如上传视频并返回统计数据。
 
-**描述**: 接收人脸特征向量，在 Elasticsearch 中进行相似人脸的查询。
+### `video-m3u8.py`
+- **描述**: 处理视频上传并返回 M3U8 链接的接口，适用于流式视频处理。
 
-**请求格式**:
-- 请求方法: POST
-- 请求头: Content-Type: application/json
-- 请求体: 
+### `uploads/`
+- **描述**: 存放用户上传文件的目录，便于管理和分类。
+
+#### `uploads/video`
+- **描述**: 专门存放上传的视频文件。
+
+#### `uploads/image`
+- **描述**: 存放上传的图像文件，主要用于人脸检测和车牌识别。
+
+#### `uploads/video-streaming`
+- **描述**: 存放视频流处理过程中生成的中间文件，支持实时处理。
+
+### `etc/`
+- **描述**: 用于存放其他辅助文件或无效文件，便于项目管理。
+
+#### `etc/invalid_files`
+- **描述**: 存放无效文件的目录，用于记录上传过程中出现的问题文件。
+
+## 1. 视频处理接口
+
+### 1.1 `/video`
+
+- **功能**: 处理上传的视频文件，并返回处理好的视频链接及人流、车流统计数据。
+
+- **请求方式**: `POST`
+
+- **请求数据格式**:
+  ```plaintext
+  multipart/form-data
+  ```
+  | 字段名  | 类型   | 描述                |
+  |-------|------|-------------------|
+  | video | File | 上传的视频文件         |
+  | interval | Integer | 处理时间间隔（毫秒） |
+
+- **响应数据格式**:
   ```json
   {
-    "face_vector": [0.1, 0.2, ... , 0.512]  # 512维的人脸特征向量
+      "processed_video_url": "https://s3-api.liushen.fun/qingyang/test.mp4",
+      "pedestrian_counts": [20, 25, 30, ...],
+      "vehicle_counts": [15, 20, 25, ...],
+      "pedestrians_per_interval": [5, 10, 8, ...],
+      "vehicles_per_interval": [2, 3, 1, ...]
   }
   ```
 
-**响应格式**:
-- 响应头: Content-Type: application/json
-- 响应体:
+- **字段说明**:
+  | 字段名                     | 类型     | 描述                             |
+  |-------------------------|--------|--------------------------------|
+  | processed_video_url     | String | 处理好的视频文件直链                  |
+  | pedestrian_counts        | Array  | 人流数据，每个元素表示每个时间段的人数       |
+  | vehicle_counts           | Array  | 车流数据，每个元素表示每个时间段的车辆数量    |
+  | pedestrians_per_interval  | Array  | 每个时间间隔内通过的人数                   |
+  | vehicles_per_interval     | Array  | 每个时间间隔内通过的车辆数量                 |
+
+---
+
+## 2. M3U8 视频处理接口
+
+### 2.1 `/video-m3u8`
+
+- **功能**: 处理上传的视频文件，并返回处理好的 M3U8 链接及人流、车流统计数据。
+
+- **请求方式**: `POST`
+
+- **请求数据格式**:
+  ```plaintext
+  multipart/form-data
+  ```
+  | 字段名  | 类型   | 描述                |
+  |-------|------|-------------------|
+  | video | File | 上传的视频文件         |
+  | interval | Integer | 处理时间间隔（毫秒） |
+
+- **响应数据格式**:
   ```json
   {
-    "results": [
-      {
-        "pic": "http://example.com/face1.jpg",
-        "time": "12:34"
-      },
-      ...
-    ]
+      "processed_video_url": "https://s3-api.liushen.fun/qingyang/video/video/index.m3u8",
+      "pedestrian_counts": [20, 25, 30, ...],
+      "vehicle_counts": [15, 20, 25, ...],
+      "pedestrians_per_interval": [5, 10, 8, ...],
+      "vehicles_per_interval": [2, 3, 1, ...]
   }
   ```
 
-### 2. 查询车牌接口 (/search-licence-plate)
+- **字段说明**:
+  | 字段名                     | 类型     | 描述                             |
+  |-------------------------|--------|--------------------------------|
+  | processed_video_url     | String | 处理好的 M3U8 视频文件直链           |
+  | pedestrian_counts        | Array  | 人流数据，每个元素表示每个时间段的人数       |
+  | vehicle_counts           | Array  | 车流数据，每个元素表示每个时间段的车辆数量    |
+  | pedestrians_per_interval  | Array  | 每个时间间隔内通过的人数                   |
+  | vehicles_per_interval     | Array  | 每个时间间隔内通过的车辆数量                 |
 
-**描述**: 接收车牌号，在 Elasticsearch 中进行车牌的查询。
+---
 
-**请求格式**:
-- 请求方法: POST
-- 请求头: Content-Type: application/json
-- 请求体:
+## 3. 视频流处理接口
+
+### 3.1 `/video-streaming`
+
+- **功能**: 处理上传的视频文件并实时返回逐帧数据，包含人流、车流统计信息。
+
+- **请求方式**: `POST`
+
+- **请求数据格式**:
+  ```plaintext
+  multipart/form-data
+  ```
+  | 字段名  | 类型   | 描述                |
+  |-------|------|-------------------|
+  | video | File | 上传的视频文件         |
+  | interval | Integer | 处理时间间隔（毫秒） |
+
+- **响应数据格式**:
+  ```
+  text/event-stream
+  ```
+  每条数据格式如下:
   ```json
   {
-    "licence_plate": "ABC123"
+      "frame_base64": "data:image/jpeg;base64,...",
+      "people_count": 30,
+      "vehicle_count": 25,
+      "pedestrians_per_interval": 10,
+      "vehicles_per_interval": 3
   }
   ```
 
-**响应格式**:
-- 响应头: Content-Type: application/json
-- 响应体:
+- **字段说明**:
+  | 字段名                     | 类型     | 描述                             |
+  |-------------------------|--------|--------------------------------|
+  | frame_base64            | String | 当前帧的图像的 Base64 编码字符串      |
+  | people_count            | Integer | 当前帧的人数                       |
+  | vehicle_count           | Integer | 当前帧的车辆数量                     |
+  | pedestrians_per_interval  | Integer | 当前时间段内通过的人数                 |
+  | vehicles_per_interval     | Integer | 当前时间段内通过的车辆数量              |
+
+---
+
+## 4. 人脸检测接口
+
+### 4.1 `/face-detect`
+
+- **功能**: 处理上传的人脸图像并返回多组相似人脸链接及对应时间戳。
+
+- **请求方式**: `POST`
+
+- **请求数据格式**:
+  ```plaintext
+  multipart/form-data
+  ```
+  | 字段名  | 类型   | 描述                |
+  |-------|------|-------------------|
+  | image | File | 上传的人脸图像         |
+
+- **响应数据格式**:
+  ```
+  text/event-stream
+  ```
+  每条数据格式如下:
   ```json
   {
-    "results": [
-      {
-        "pic": "http://example.com/car1.jpg",
-        "time": "12:34"
-      },
-      ...
-    ]
+      "time": 12345,
+      "similar_face": "https://example.com/image.jpg",
+      "distance": 0.75
   }
   ```
 
-### 接口实现
+- **字段说明**:
+  | 字段名                     | 类型     | 描述                             |
+  |-------------------------|--------|--------------------------------|
+  | time                    | Integer | 与图像相关的时间戳                   |
+  | similar_face            | String | 相似人脸的图像链接                  |
+  | distance                | Float  | 用于计算置信度的距离（值越小越相似） |
 
-以下是实现代码：
+---
 
-```python
-from flask import Flask, request, jsonify
-from elasticsearch import Elasticsearch
+## 5. 车牌识别接口
 
-app = Flask(__name__)
-es = Elasticsearch(['http://localhost:9200'])  # 根据你的 ES 实例修改地址
+### 5.1 `/licence-plate`
 
-@app.route('/search-face', methods=['POST'])
-def search_face():
-    data = request.get_json()
-    face_vector = data.get('face_vector')
-    
-    if not face_vector:
-        return jsonify({"error": "Face vector is required"}), 400
-    
-    query = {
-        "script_score": {
-            "query": {"match_all": {}},
-            "script": {
-                "source": "cosineSimilarity(params.query_vector, 'face') + 1.0",
-                "params": {"query_vector": face_vector}
-            }
-        }
-    }
-    
-    try:
-        response = es.search(index='your_index_name', body={"query": query})
-        hits = response['hits']['hits']
-        results = [{"pic": hit['_source']['pic'], "time": hit['_source']['time']} for hit in hits]
-        return jsonify({"results": results})
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+- **功能**: 处理上传的图像，并返回多组与车牌号相关的图像链接及对应时间戳。
 
-@app.route('/search-licence-plate', methods=['POST'])
-def search_licence_plate():
-    data = request.get_json()
-    licence_plate = data.get('licence_plate')
-    
-    if not licence_plate:
-        return jsonify({"error": "Licence plate is required"}), 400
-    
-    query = {
-        "match": {
-            "lp": licence_plate
-        }
-    }
-    
-    try:
-        response = es.search(index='your_index_name', body={"query": query})
-        hits = response['hits']['hits']
-        results = [{"pic": hit['_source']['pic'], "time": hit['_source']['time']} for hit in hits]
-        return jsonify({"results": results})
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+- **请求方式**: `POST`
 
-if __name__ == '__main__':
-    app.run(debug=True)
-```
+- **请求数据格式**:
+  ```json
+  {
+      "licence_plate": "ABC123"
+  }
+  ```
 
-### 使用说明
+- **响应数据格式**:
+  ```
+  text/event-stream
+  ```
+  每条数据格式如下:
+  ```json
+  {
+      "time": 12345,
+      "car_image": "https://example.com/car.jpg",
+      "licence_plate": "ABC123"
+  }
+  ```
 
-1. **安装依赖**: 确保已安装 Flask 和 Elasticsearch 的 Python 客户端库。
-2. **配置 Elasticsearch 地址**: 根据你的 ES 实例，修改 `Elasticsearch(['http://localhost:9200'])` 部分。
-3. **启动 Flask 应用**: 运行 `python app.py` 启动 Flask 应用。
-4. **测试接口**: 可以使用 Postman 或 curl 测试 `/search-face` 和 `/search-licence-plate` 接口，发送 POST 请求，包含相应的 JSON 请求体。
+- **字段说明**:
+  | 字段名                     | 类型     | 描述                             |
+  |-------------------------|--------|--------------------------------|
+  | time                    | Integer | 与车牌相关的时间戳                   |
+  | car_image               | String | 相关车牌图像的链接                  |
+  | licence_plate           | String | 随机生成的车牌号                    |
 
-### 示例查询请求
-
-使用 curl 测试 `/search-face`：
-
-```bash
-curl -X POST http://localhost:5000/search-face \
-    -H "Content-Type: application/json" \
-    -d '{
-          "face_vector": [0.1, 0.2, ... , 0.512]
-        }'
-```
-
-使用 curl 测试 `/search-licence-plate`：
-
-```bash
-curl -X POST http://localhost:5000/search-licence-plate \
-    -H "Content-Type: application/json" \
-    -d '{
-          "licence_plate": "ABC123"
-        }'
-```
-
-使用 Postman 发送类似的 JSON 请求体。
+---
