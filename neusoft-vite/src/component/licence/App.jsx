@@ -18,7 +18,7 @@ const App = () => {
         console.log("搜索内容：", value);
         setPictures([]);
 
-        fetch('http://192.168.69.169:5000/licence-plate', {
+        fetch('http://192.168.6.227:5000/licence-plate', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

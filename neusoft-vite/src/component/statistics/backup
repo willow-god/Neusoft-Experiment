@@ -1,7 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import { UploadOutlined } from '@ant-design/icons';
 import { Button, Upload, message, Input } from 'antd';
-import Hls from 'hls.js';
 import Echart_Line from './Echart_Line';
 import Echart_Column from './Echart_Column';
 import '/src/css/statistic.css';
@@ -15,30 +14,17 @@ const App = () => {
     const [vehiclesPerInterval, setVehiclesPerInterval] = useState([]);
     const [interval, setInterval] = useState(250);
     const [loadings, setLoadings] = useState(false);
-    const videoRef = useRef(null);
 
     const uploadProps = {
         fileList: videoFile ? [videoFile] : [],
         customRequest: ({ file, onSuccess, onError }) => {
             setVideoFile(file);
+            // setVideoURL(URL.createObjectURL(file));
             onSuccess(null, file);
             message.success('视频上传成功');
         },
         showUploadList: true,
     };
-
-    useEffect(() => {
-        if (videoURL && Hls.isSupported()) {
-            const hls = new Hls();
-            hls.loadSource(videoURL);
-            hls.attachMedia(videoRef.current);
-            hls.on(Hls.Events.MANIFEST_PARSED, () => {
-                videoRef.current.play();
-            });
-        } else if (videoRef.current) {
-            videoRef.current.src = videoURL;
-        }
-    }, [videoURL]);
 
     const handleProcess = () => {
         if (!videoFile) {
@@ -52,7 +38,7 @@ const App = () => {
         formData.append('video', videoFile);
         formData.append('interval', interval);
 
-        fetch('http://localhost:5000/video', {
+        fetch('http://192.168.6.118:5000/video', {
             method: 'POST',
             body: formData,
         })
@@ -93,7 +79,8 @@ const App = () => {
             <div className='VideoBodyUp'>
                 <div className='radiusBox' style={{ width: '492px', height: '275px', border: '1px solid #d9d9d9', marginTop: '16px' }}>
                     {videoURL ? (
-                        <video className='radiusBox' width="100%" controls autoPlay ref={videoRef}>
+                        <video className='radiusBox' width="100%" controls autoPlay>
+                            <source src={videoURL} type="video/mp4" />
                             Your browser does not support the video tag.
                         </video>
                     ) : (

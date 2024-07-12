@@ -41,7 +41,7 @@ const App = () => {
         formData.append('video', videoFile);
         formData.append('interval', interval);
 
-        fetch('http://192.168.69.176:5000/video-streaming', {
+        fetch('http://localhost:5000/video-streaming', {
             method: 'POST',
             body: formData,
         })

@@ -85,7 +85,7 @@ const App = () => {
         formData.append('image', uploadFile);
         setPictures([]);
 
-        fetch('http://192.168.69.169:5000/face-detect', {
+        fetch('http://192.168.69.176:5000/face-detect', {
             method: 'POST',
             body: formData,
         })
@@ -160,7 +160,7 @@ const App = () => {
                         <Button icon={<UploadOutlined />}>上传人脸</Button>
                     </Upload>
                     <Button
-                    className='face_button_search'
+                        className='face_button_search'
                         type="primary"
                         onClick={searchProcess}
                         loading={loadings}
@@ -193,6 +193,7 @@ const App = () => {
                             />
                         </div>
                         <p>时间：{item.time}</p>
+                        <p>相似度：{((1 - item.distance) * 100).toFixed(2)}%</p>
                     </Card>
                 ))}
             </div>
