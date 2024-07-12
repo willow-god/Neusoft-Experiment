@@ -73,8 +73,8 @@ npm run dev
 
 具体的接口规范和说明文档已在以下文件中提供：
 
-- **后端接口说明**: 请查看 ![接口说明文档](./neusoft-backend/readme.md)
-- **前端实现说明**: 请查看 ![前端说明文档](./neusoft-vite/readme.md)
+- **后端接口说明**: 请查看 [接口说明文档](./neusoft-backend/readme.md)
+- **前端实现说明**: 请查看 [前端说明文档](./neusoft-vite/readme.md)
 
 - **注意：该后端为模拟数据，仅用作API调试，具体实现请自行设计**
 
