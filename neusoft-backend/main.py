@@ -28,6 +28,51 @@ SIMILAR_FACES = [
     "https://s3-api.liushen.fun/qingyang/202407100004320_repeat_1720541049541__761235.webp"
 ]
 
+# ================================= 基本参数 ==========================================
+
+# 视频处理函数
+def process_video(video_path, category):
+    # 根据类别进行处理（这里暂时只打印类别）
+    if category == 'car':
+        print('处理车车视频')
+        print('视频路径：', video_path)
+        time.sleep(5) #=========================================处理车车代码写在这里
+        print("视频处理完成！")
+    elif category == 'person':
+        print('处理姐姐视频')
+        print('视频路径：', video_path)
+        time.sleep(5) #=========================================处理姐姐代码写在这里
+        print("视频处理完成！")
+    else:
+        print('类别不对劲')
+        print("视频处理失败！")
+    return
+
+# 数据上传接口
+@app.route('/data-upload', methods=['POST'])
+def data_upload():
+    if 'video' not in request.files or 'category' not in request.form:
+        return jsonify({'status': 'error', 'message': 'No video or category provided'}), 400
+
+    video = request.files['video']
+    category = request.form['category']
+
+    if video.filename == '':
+        return jsonify({'status': 'error', 'message': 'No selected video'}), 400
+
+    # 保存视频文件到本地
+    video_path = os.path.join(UPLOAD_FOLDER_DATA, video.filename)
+    video.save(video_path)
+
+    # 启动新线程处理视频
+    threading.Thread(target=process_video, args=(video_path, category)).start()
+
+    print("视频上传成功！")
+    return jsonify({'status': 'success', 'message': 'Video uploaded successfully', 'category': category}), 200
+
+
+# ===========================================================================
+
 # 模拟包含车牌号的图像链接
 CAR_IMAGES = SIMILAR_FACES;
 
@@ -55,6 +100,8 @@ def process_video():
         "pedestrians_per_interval": pedestrians_per_interval,
         "vehicles_per_interval": vehicles_per_interval
     })
+
+# ==============================================================================
 
 # M3U8视频处理接口
 @app.route('/video-m3u8', methods=['POST'])
@@ -111,6 +158,8 @@ def generate_frames(video_path, interval):
 
     cap.release()
 
+# ============================================================================================
+
 @app.route('/video-streaming', methods=['POST'])
 def video_streaming():
     """处理视频流并返回逐帧数据"""
@@ -134,6 +183,8 @@ def generate_similar_faces(image_path):
         }
         yield f"{json.dumps(data)}\n"
         time.sleep(1)  # 模拟处理时间间隔
+
+# ==============================================================================
 
 @app.route('/face-detect', methods=['POST'])
 def face_detect():
@@ -160,6 +211,8 @@ def generate_car_images(licence_plate):
         }
         yield f"{json.dumps(data)}\n"
         time.sleep(1)  # 模拟处理时间间隔
+
+# ======================================================================================
 
 @app.route('/licence-plate', methods=['POST'])
 def licence_plate():

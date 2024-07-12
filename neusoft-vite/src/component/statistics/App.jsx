@@ -52,7 +52,7 @@ const App = () => {
         formData.append('video', videoFile);
         formData.append('interval', interval);
 
-        fetch('http://192.168.69.176:5000/video', {
+        fetch('http://10.81.196.67:5000/video-m3u8', {
             method: 'POST',
             body: formData,
         })
@@ -63,6 +63,7 @@ const App = () => {
                 setPedestrianCount(pedestrianCounts);
                 setVehicleCount(vehicleCounts);
                 setVideoURL(data.processed_video_url);
+                console.log("视频地址：", data.processed_video_url);
                 setPedestriansPerInterval(data.pedestrians_per_interval.slice(-30).map((count, index) => ({ time: index, count })));
                 setVehiclesPerInterval(data.vehicles_per_interval.slice(-30).map((count, index) => ({ time: index, count })));
                 message.success('处理成功！');
@@ -93,11 +94,11 @@ const App = () => {
             <div className='VideoBodyUp'>
                 <div className='radiusBox' style={{ width: '492px', height: '275px', border: '1px solid #d9d9d9', marginTop: '16px' }}>
                     {videoURL ? (
-                        <video className='radiusBox' width="100%" controls autoPlay ref={videoRef}>
+                        <video className='radiusBox' width='100%' controls autoPlay ref={videoRef}>
                             Your browser does not support the video tag.
                         </video>
                     ) : (
-                        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%', color: '#aaa' }}>
+                        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '492px', height: '100%',overflow:'hidden', color: '#aaa' }}>
                             视频展示区域，请先上传视频
                         </div>
                     )}

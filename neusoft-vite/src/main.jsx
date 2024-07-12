@@ -6,6 +6,7 @@ import Statistics_Streaming_App from './component/statistics_streaming/App.jsx'
 import Licence_App from './component/licence/App.jsx'
 import Face_App from './component/face/App.jsx'
 import Statistic_App from './component/statistics/App.jsx'
+import Data_Upload_App from './component/data_upload/App.jsx'
 import Team_App from './component/team/App.jsx'
 import Menu from './component/menu.jsx'
 import './css/upload.css'
@@ -151,6 +152,20 @@ const Router = createBrowserRouter([
         </div>
         <div className='content'>
           <Team_App />
+        </div>
+      </div>,
+  },
+  {
+    path: "/data-upload",
+    element:
+      <div className="container">
+        <div className="container-menu">
+          <Menu />
+        </div>
+        <div className='content'>
+          <h2>🤩🤩🤩数据上传</h2>
+          <h3>上传如人脸，车牌等视频数据，我们将进行抽帧，并将数据处理后存储在数据库中</h3>
+          <Data_Upload_App />
         </div>
       </div>,
   },

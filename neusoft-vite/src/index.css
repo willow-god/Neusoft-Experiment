@@ -9,6 +9,10 @@ body {
 }
 
 .container-menu {
+  user-select: none; /* 标准属性 */
+  -webkit-user-select: none; /* 对于Safari */
+  -moz-user-select: none; /* 对于Firefox */
+  -ms-user-select: none; /* 对于IE和Edge */
   z-index: 1000; /* 使菜单容器在最上层 */
   width: 256px;
   height: 100%;

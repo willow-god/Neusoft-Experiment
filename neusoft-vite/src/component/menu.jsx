@@ -73,7 +73,7 @@ const items = [
         icon: <MailOutlined />,
         children: [
             {
-                key: 'gl1',
+                key: '/data-upload',
                 label: '上传数据',
             },
             {
@@ -142,14 +142,36 @@ const MenuComponent = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const [selectedKeys, setSelectedKeys] = useState([]);
+    const [openKeys, setOpenKeys] = useState([]);
 
     useEffect(() => {
         setSelectedKeys([location.pathname]);
+        const parentKey = findParentKey(location.pathname);
+        setOpenKeys(parentKey ? [parentKey] : []);
     }, [location.pathname]);
 
     const onClick = (e) => {
         setSelectedKeys([e.key]);
         navigate(e.key);
+    };
+
+    const findParentKey = (key) => {
+        for (const item of items) {
+            if (item.children) {
+                for (const child of item.children) {
+                    if (child.key === key) {
+                        return item.key;
+                    } else if (child.children) {
+                        for (const subChild of child.children) {
+                            if (subChild.key === key) {
+                                return item.key;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return null;
     };
 
     return (
@@ -162,6 +184,8 @@ const MenuComponent = () => {
                 onClick={onClick}
                 style={{ width: 256 }}
                 selectedKeys={selectedKeys}
+                openKeys={openKeys}
+                onOpenChange={(keys) => setOpenKeys(keys)}
                 mode="inline"
                 items={items}
             />

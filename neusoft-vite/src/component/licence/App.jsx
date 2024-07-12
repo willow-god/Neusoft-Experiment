@@ -18,7 +18,7 @@ const App = () => {
         console.log("搜索内容：", value);
         setPictures([]);
 
-        fetch('http://localhost:5000/licence-plate', {
+        fetch('http://10.81.196.67:5000/licence-plate', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
