@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { InboxOutlined } from '@ant-design/icons';
-import { message, Upload, Select, Button } from 'antd';
+import { message, Upload, Select, Button, Input } from 'antd';
 import '/src/css/data-upload.css';
 
 const { Dragger } = Upload;
@@ -8,6 +8,7 @@ const { Dragger } = Upload;
 const App = () => {
     const [fileList, setFileList] = useState([]);
     const [category, setCategory] = useState('');
+    const [interval, setInterval] = useState(2000);
     const [loading, setLoading] = useState(false);
 
     const handleChange = (value) => {
@@ -40,17 +41,23 @@ const App = () => {
         const formData = new FormData();
         formData.append('video', fileList[0]);
         formData.append('category', category);
+        formData.append('interval', interval);
+
+        if (category === 'car') {
+            API_URL = 'http://192.168.69.176:5000/data-upload';
+        } else if (category === 'person') {
+            API_URL = 'http://192.168.69.176:5000/data-upload';
+        }
 
         try {
-            const response = await fetch('http://10.81.196.67:5000/data-upload', {
+            const response = await fetch(API_URL, {
                 method: 'POST',
                 body: formData,
             });
             const data = await response.json();
 
             if (data.status === 'success') {
-                message.success('上传成功');
-                console.log('上传成功');
+                message.success('上传成功，正在处理数据源，请在数据管理页面查看');
             } else {
                 message.error(`上传失败: ${data.message}`);
             }
@@ -60,7 +67,6 @@ const App = () => {
         } finally {
             setLoading(false);
             setFileList([]);
-            setCategory('');
         }
     };
 
@@ -97,6 +103,13 @@ const App = () => {
                             options: [{ label: <span>上传人脸数据源</span>, value: 'person', }],
                         },
                     ]}
+                />
+                <Input 
+                    className='upload-input'
+                    addonBefore="处理间隔" 
+                    addonAfter="毫秒(ms)" 
+                    value={interval} 
+                    onChange={(e) => setInterval(Number(e.target.value))} 
                 />
                 <Button className='data-upload-button' type="primary" onClick={handleUpload} loading={loading}>点击上传数据源</Button>
             </div>

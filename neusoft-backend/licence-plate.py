@@ -35,8 +35,16 @@ def generate_car_images(licence_plate):
 
 @app.route('/licence-plate', methods=['POST'])
 def licence_plate():
-    data = request.get_json()
-    licence_plate = data.get('licence_plate')
+    licence_plate = request.form.get('licence_plate')
+    print(f"licence_plate: {licence_plate}")
+    
+    # 获取来源文件名称
+    source_file_name = request.form.get('sourceFileName')
+    print(f"Source File Name: {source_file_name}")
+
+    # 获取来源文件上传时间
+    source_upload_time = request.form.get('sourceUploadTime')
+    print(f"Source Upload Time: {source_upload_time}")
 
     if not licence_plate:
         return jsonify({"error": "licence_plate is required"}), 400

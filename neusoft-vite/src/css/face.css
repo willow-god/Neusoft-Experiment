@@ -13,10 +13,17 @@
     max-width: 400px;
 }
 
-.face_button_search {
+.face_select {
+    width: 200px;
     position: absolute;
     top: 0;
     left: 120px;
+}
+
+.face_button_search {
+    position: absolute;
+    top: 0;
+    left: 330px;
 }
 
 .face_card {

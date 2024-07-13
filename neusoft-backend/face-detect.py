@@ -42,6 +42,14 @@ def face_detect():
     # 保存图片到本地
     image_filename = os.path.join(UPLOAD_FOLDER, image.filename)
     image.save(image_filename)
+    
+    # 获取来源文件名称
+    source_file_name = request.form.get('sourceFileName')
+    print(f"Source File Name: {source_file_name}")
+
+    # 获取来源文件上传时间
+    source_upload_time = request.form.get('sourceUploadTime')
+    print(f"Source Upload Time: {source_upload_time}")
 
     return Response(generate_similar_faces(image_filename), content_type='text/event-stream')
 

@@ -52,10 +52,6 @@ const items = [
                 type: 'group',
                 children: [
                     {
-                        key: '/upload',
-                        label: 'Minio上传',
-                    },
-                    {
                         key: '/licence-plate',
                         label: '车牌检索',
                     },
@@ -74,11 +70,15 @@ const items = [
         children: [
             {
                 key: '/data-upload',
-                label: '上传数据',
+                label: '数据上传',
             },
             {
-                key: 'gl2',
+                key: '/data-management',
                 label: '数据管理',
+            },
+            {
+                key: '/upload',
+                label: 'Minio上传',
             },
             {
                 key: 'gl-zhgl',
@@ -132,7 +132,7 @@ const items = [
                 label: '团队分工',
             },
             {
-                key: 'wm2',
+                key: '/about',
                 label: '关于',
             },
         ],
@@ -178,7 +178,7 @@ const MenuComponent = () => {
         <div>
             <h2 style={{ margin: '0 0', backgroundColor: '#ffffff', fontSize: '1.2em', display: 'flex', alignItems: 'center', padding: '10px', paddingRight: '30px', paddingBottom: '20px', paddingTop: '20px', justifyContent: 'center', borderBottom: '1px solid #ccc' }}>
                 <span style={{ margin: '0 5px' }}>😊</span>
-                咕咕人流检测
+                咕咕人车检测
             </h2>
             <Menu
                 onClick={onClick}

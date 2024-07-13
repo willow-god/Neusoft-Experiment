@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { message, Card, Upload, Image, Button } from 'antd';
+import React, { useState, useEffect } from 'react';
+import { message, Select, Card, Upload, Image, Button } from 'antd';
 import { PlusOutlined, UploadOutlined } from '@ant-design/icons';
 import '/src/css/face.css';
 
@@ -18,6 +18,25 @@ const App = () => {
     const [fileList, setFileList] = useState([]); // 上传的文件列表
     const [uploadFile, setUploadFile] = useState(null); // 保存上传的图像文件
     const [loadings, setLoadings] = useState(false);
+    const [videoOptions, setVideoOptions] = useState([]); // 下拉框选项
+    const [selectedVideo, setSelectedVideo] = useState(null); // 选择的视频
+
+    useEffect(() => {
+        fetch('http://127.0.0.1:5000/get_videos_info')
+            .then(response => response.json())
+            .then(data => {
+                const personVideos = data.filter(item => item.category === 'person' && item.processing_status === 1);
+                const options = personVideos.map(video => ({
+                    value: JSON.stringify({ fileName: video.file_name, uploadTime: video.upload_time }),
+                    label: video.file_name,
+                }));
+                setVideoOptions(options);
+            })
+            .catch(error => {
+                console.error('获取视频信息出错:', error);
+                message.error('获取视频信息失败');
+            });
+    }, []);
 
     const handlePreview = async (file) => {
         if (!file.url && !file.preview) {
@@ -79,13 +98,22 @@ const App = () => {
             return;
         }
 
+        if (!selectedVideo) {
+            message.error('请选择数据来源');
+            return;
+        }
+
         setLoadings(true);
 
         const formData = new FormData();
         formData.append('image', uploadFile);
+        const videoInfo = JSON.parse(selectedVideo);
+        formData.append('sourceFileName', videoInfo.fileName);
+        formData.append('sourceUploadTime', videoInfo.uploadTime);
+
         setPictures([]);
 
-        fetch('http://10.81.196.67:5000/face-detect', {
+        fetch('http://localhost:5000/face-detect', {
             method: 'POST',
             body: formData,
         })
@@ -138,13 +166,6 @@ const App = () => {
             });
     };
 
-    const formatTime = (timestamp) => {
-        const date = new Date(timestamp * 1000); // 将秒转换为毫秒
-        const hours = date.getHours().toString().padStart(2, '0'); // 获取小时，并保证两位数显示
-        const minutes = date.getMinutes().toString().padStart(2, '0'); // 获取分钟，并保证两位数显示
-        return `${hours}:${minutes}`;
-    };
-
     return (
         <div>
             <div className='search'>
@@ -159,6 +180,17 @@ const App = () => {
                     >
                         <Button icon={<UploadOutlined />}>上传人脸</Button>
                     </Upload>
+                    <Select
+                        className='face_select'
+                        showSearch
+                        placeholder="选择数据来源"
+                        optionFilterProp="label"
+                        filterSort={(optionA, optionB) =>
+                            (optionA?.label ?? '').toLowerCase().localeCompare((optionB?.label ?? '').toLowerCase())
+                        }
+                        options={videoOptions}
+                        onChange={value => setSelectedVideo(value)}
+                    />
                     <Button
                         className='face_button_search'
                         type="primary"

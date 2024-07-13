@@ -1,15 +1,39 @@
-import React, { useState } from 'react';
-import { Input, message, Card, Image } from 'antd';
+import React, { useState, useEffect } from 'react';
+import { Input, message, Card, Image, Space, Select } from 'antd';
 const { Search } = Input;
 import '/src/css/licence.css';
 
 const App = () => {
     const [pictures, setPictures] = useState([]);
     const [loadings, setLoadings] = useState(false);
+    const [videoOptions, setVideoOptions] = useState([]); // 下拉框选项
+    const [selectedVideo, setSelectedVideo] = useState(null); // 选择的视频
+
+    useEffect(() => {
+        fetch('http://127.0.0.1:5000/get_videos_info')
+            .then(response => response.json())
+            .then(data => {
+                const personVideos = data.filter(item => item.category === 'person' && item.processing_status === 1);
+                const options = personVideos.map(video => ({
+                    value: JSON.stringify({ fileName: video.file_name, uploadTime: video.upload_time }),
+                    label: video.file_name,
+                }));
+                setVideoOptions(options);
+            })
+            .catch(error => {
+                console.error('获取视频信息出错:', error);
+                message.error('获取视频信息失败');
+            });
+    }, []);
 
     const searchProcess = (value) => {
         if (value === '') {
             message.error('请输入车牌号');
+            return;
+        }
+
+        if (!selectedVideo) {
+            message.error('请选择数据来源');
             return;
         }
 
@@ -18,12 +42,15 @@ const App = () => {
         console.log("搜索内容：", value);
         setPictures([]);
 
-        fetch('http://10.81.196.67:5000/licence-plate', {
+        const formData = new FormData();
+        formData.append('licence_plate', value);
+        const videoInfo = JSON.parse(selectedVideo);
+        formData.append('sourceFileName', videoInfo.fileName);
+        formData.append('sourceUploadTime', videoInfo.uploadTime);
+
+        fetch('http://localhost:5000/licence-plate', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ licence_plate: value }),
+            body: formData,
         })
             .then(response => {
                 if (response.ok) {
@@ -84,13 +111,22 @@ const App = () => {
     return (
         <div>
             <div className='search' style={{ width: 800, margin: 10 }}>
-                <Search
-                    placeholder="请输入车牌号"
-                    enterButton="嗖嗖嗖搜索"
-                    size="large"
-                    onSearch={searchProcess}
-                    loading={loadings}
-                />
+                <Space.Compact>
+                    <Select
+                        defaultValue="请选择视频来源"
+                        options={videoOptions}
+                        showSearch
+                        style={{ width: 200, height: 39.42 }}
+                        onChange={value => setSelectedVideo(value)}
+                    />
+                    <Search
+                        placeholder="请输入车牌号"
+                        enterButton="嗖嗖嗖搜索"
+                        size="large"
+                        onSearch={searchProcess}
+                        loading={loadings}
+                    />
+                </Space.Compact>
             </div>
             <div className='pictures'>
                 {pictures.map((item, index) => (
