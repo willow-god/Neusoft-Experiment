@@ -2,10 +2,10 @@ import pymysql
 from datetime import datetime
 
 # 数据库配置
-DB_HOST = '8.130.151.101'
+DB_HOST = 'your host'
 DB_PORT = 3306
 DB_USER = 'Neusoft'
-DB_PASSWORD = 'Neusoft.310ZhuanYong'
+DB_PASSWORD = 'Neusoft'
 DB_NAME = 'Neusoft'
 
 # 连接数据库
